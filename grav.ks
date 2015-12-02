@@ -1,11 +1,13 @@
 
 run once lib. //import common functions
 
+SET TARGET_APOAPSIS TO 70000.
+
 FUNCTION THROTTLE_TO_TWR {
 	DECLARE PARAMETER TARGET.
 	SET THROTTLE_TARGET TO THROTTLE_MIN.
 	UNTIL TWR() > TARGET {
-		IF TICKED() {
+		IF TICKED(1) {
 			ADD_THROTTLE(0.05).
 			WAIT TICK_DURATION_S * THROTTLE_LAG_TICKS. //wait enough for the engine to respond to the change
 		}
@@ -13,7 +15,7 @@ FUNCTION THROTTLE_TO_TWR {
 	PRINT "TWR reached: " + TWR() + ", " + TWR() / TARGET * 100 + "% of target".
 }
 
-LOCK STEERING TO HEADING(90, 89.9). //head slightly east t balance the rotation of the planet
+LOCK STEERING TO HEADING(90, 90).
 
 LIFTOFF().
 
@@ -21,4 +23,31 @@ GEAR OFF.
 
 THROTTLE_TO_TWR(1.5).
 
-WAIT UNTIL SHIP:ALTITUDE > 1000.
+WAIT UNTIL SHIP:AIRSPEED > 50. //wait to reach a decent speed
+
+PRINT "Performing pitch-over".
+
+LOCK STEERING TO HEADING(90, 83).
+
+WAIT UNTIL VDOT( VELOCITY:SURFACE:NORMALIZED, HEADING(90, 83):FOREVECTOR ) > 0.9999.
+
+PRINT "Gravity turn started".
+
+LOCK STEERING TO VELOCITY:SURFACE.
+
+//enter throttleable regime
+//until Apoapsis is reached
+UNTIL ALT:RADAR > TARGET_APOAPSIS - 200 {
+	IF TICKED(2) {
+		IF SHIP:APOAPSIS > TARGET_APOAPSIS {
+			SET THROTTLE_TARGET TO 0.
+		}
+		ELSE IF SHIP:DYNAMICPRESSURE > 0.24 {
+			ADD_THROTTLE(-0.05).
+		}
+		ELSE IF SHIP:DYNAMICPRESSURE < 0.22 AND SHIP:APOAPSIS < TARGET_APOAPSIS - 50 {
+			ADD_THROTTLE(0.05).
+		}
+	}
+}
+
