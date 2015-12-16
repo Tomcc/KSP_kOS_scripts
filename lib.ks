@@ -1,6 +1,6 @@
 
 //initialize the rocket height as it's vital for landing. From file if possible.
-RUN ONCE init_height.
+RUN ONCE selfconfig.
 
 GLOBAL MASS_KG IS 0.
 GLOBAL DELTA_T IS 0.
@@ -82,6 +82,15 @@ FUNCTION LIFTOFF {
 	PRINT "LIFTOFF!!!".
 
 	STAGE.
+}
+
+FUNCTION MAX_THRUST {
+	RETURN SHIP:MAXTHRUST * 1000.
+}
+
+FUNCTION THROTTLE_TO_TWR {
+	DECLARE PARAMETER TARGET.
+	SET THROTTLE_TARGET TO (TARGET * WEIGHT()) / (SHIP:MAXTHRUST * 1000).
 }
 
 //ensure that the throttle remains 0
