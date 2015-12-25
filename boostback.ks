@@ -1,0 +1,26 @@
+RUN ONCE lib.
+
+//orient along the opposite of the horizontal speed
+PRINT "Orientating for boostback...".
+
+FUNCTION BOOSTBACK_DIR {
+	LOCAL T IS TANGENT_SPEED().
+	RETURN -T:NORMALIZED.
+}
+
+SET DIR TO BOOSTBACK_DIR().
+SET TARGET_SPEED TO TANGENT_SPEED():MAG*0.265.
+LOCK STEERING TO DIR.
+
+WAIT UNTIL SHIP:FACING:FOREVECTOR * DIR > 0.98.
+WAIT 2.
+
+PRINT "Boostback started".
+
+THROTTLE_TO_MAX().
+
+WAIT UNTIL TANGENT_SPEED() * DIR > TARGET_SPEED.
+
+THROTTLE_TO_TWR(0).
+
+PRINT "Boostback complete".
